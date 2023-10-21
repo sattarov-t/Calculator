@@ -4,12 +4,12 @@
 
 import UIKit
 
-class ViewControllerTest: UIViewController {
+class CalculatorController: UIViewController {
     
     //MARK: - Func of button
     
     
-    private lazy var displayLabel: UILabel = {
+    lazy var displayLabel: UILabel = {
         let label = UILabel()
         label.contentMode = .left
         label.font = UIFont.systemFont(ofSize: 50, weight: .thin)
@@ -325,7 +325,25 @@ class ViewControllerTest: UIViewController {
         return stackView
     }()
     
+    //MARK: - Display values
     
+    private var isFinishedTyping: Bool = true //Метка для отслеживания дейтвия
+    
+    private var dislpayValue: Double {
+        
+        get {
+            guard let number = Double(displayLabel.text!) else {
+                fatalError("Cannot convert display label to double")
+            }
+            return number
+        }
+        set {
+            displayLabel.text = String(newValue)
+        }
+    }
+    
+    private var calculator = CalculatorLogic()
+    //MARK: - Initialization of view
     
     init() {
         super.init(nibName: nil, bundle: nil)
@@ -343,10 +361,40 @@ class ViewControllerTest: UIViewController {
     //MARK: - Buttons funcs
     @objc func calcButton (_ sender: UIButton) {
         print("\(String(describing: sender.currentTitle)) is pressed")
+        
+        isFinishedTyping = true
+        
+        calculator.setNumber(dislpayValue)
+        
+        if let calcMethod = sender.currentTitle {
+            if let result = calculator.calculate(symbol: calcMethod) {
+                dislpayValue = result
+            }
+        }
+        
+        calculator.playSound()
     }
     
     @objc func numButton(_ sender: UIButton) {
         print("\(String(describing: sender.currentTitle)) is pressed")
+        
+        if let numValue = sender.currentTitle {
+            if isFinishedTyping {
+                displayLabel.text = numValue
+                isFinishedTyping = false
+            } else {
+                if numValue == "." {
+                    let isInt = floor(dislpayValue) == dislpayValue
+                    
+                    if !isInt {
+                        return
+                    }
+                }
+                displayLabel.text = displayLabel.text! + numValue
+            }
+        }
+        calculator.playSound()
+
     }
 
     //MARK: - Setups of layouts
